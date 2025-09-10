@@ -1,0 +1,19 @@
+[project]
+name = "agentic-ai-part-1"
+version = "0.1.0"
+description = "Code repository for Agentic AI training program"
+authors = [
+    { name = "Simanta Sarma", email = "ximanta@cc.cc" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10,<3.12"
+dependencies = [
+    "openai>=1.0.0",
+    "python-dotenv>=0.19.0",
+    "jupyter>=1.0.0"
+]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"

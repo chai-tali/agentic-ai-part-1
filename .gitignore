@@ -1,0 +1,54 @@
+# Environment managed by uv (local venv)
+.venv/
+# GitHub workflows
+.github
+# Environment variables (API keys, secrets)
+.env
+.env.*      # e.g., .env.dev, .env.prod
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Database / data files
+*.sqlite3
+*.db
+*.pkl
+
+# Miscellaneous backups
+*.bak
