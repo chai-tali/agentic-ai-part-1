@@ -6,7 +6,7 @@ authors = [
     { name = "Simanta Sarma", email = "ximanta@cc.cc" }
 ]
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
 requires-python = ">=3.10,<3.12"
 dependencies = [
     "openai>=1.0.0",
@@ -16,6 +16,16 @@ dependencies = [
     "uvicorn[standard]>=0.24.0",
     "pydantic>=2.0.0",
     "requests>=2.31.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "httpx>=0.24.0",
+    "pytest-mock>=3.10.0",
+    "responses>=0.23.0",
+    "pytest-cov>=4.0.0"
 ]
 
 [build-system]

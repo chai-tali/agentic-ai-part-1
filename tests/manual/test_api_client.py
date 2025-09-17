@@ -1,10 +1,14 @@
-# FastAPI LLM Streaming API Test Client
+# FastAPI LLM Streaming API Test Client (Manual Testing)
 # This script demonstrates how to test both streaming and non-streaming endpoints
 # Perfect for learning how to consume LLM APIs programmatically
+#
+# MOVED TO: tests/manual/test_api_client.py
+# This is now part of the organized test suite but remains a manual/interactive test
 
 import requests  # For making HTTP requests
 import json      # For parsing JSON responses
 import time      # For delays and timing
+import pytest    # For test decorations
 
 # =============================================================================
 # API TESTING CONFIGURATION
@@ -24,6 +28,7 @@ BASE_URL = "http://localhost:8000"
 # NON-STREAMING ENDPOINT TESTING
 # =============================================================================
 
+@pytest.mark.skip(reason="Requires running FastAPI server")
 def test_chat_endpoint():
     """
     Test the NON-STREAMING /chat endpoint
@@ -42,7 +47,7 @@ def test_chat_endpoint():
         "model": "both"  # Test both models at once
     }
     
-    print(f"📤 Sending request: {payload}")
+    print(f" Sending request: {payload}")
     
     # Make the HTTP POST request
     # This will WAIT for the complete response (non-streaming behavior)
@@ -56,13 +61,14 @@ def test_chat_endpoint():
         print(f"📝 Gemini Response: {data.get('gemini_response', 'None')[:100]}...")
         print(f"🎯 Model used: {data.get('model_used', 'Unknown')}")
     else:
-        print(f"❌ Chat endpoint failed: {response.status_code}")
+        print(f"Chat endpoint failed: {response.status_code}")
         print(f"Error details: {response.text}")
 
 # =============================================================================
 # STREAMING ENDPOINT TESTING
 # =============================================================================
 
+@pytest.mark.skip(reason="Requires running FastAPI server")
 def test_streaming_endpoint():
     """
     Test the REAL-TIME STREAMING /chat/stream endpoint
@@ -129,6 +135,7 @@ def test_streaming_endpoint():
 # UTILITY ENDPOINT TESTING
 # =============================================================================
 
+@pytest.mark.skip(reason="Requires running FastAPI server")
 def test_health_check():
     """
     Test the /health endpoint
