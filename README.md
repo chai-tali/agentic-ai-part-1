@@ -35,7 +35,7 @@ pip install .
 
 1. Basic OpenAI SDK Example:
 ```bash
-uv run python 01-llm_apps/01-openai-sdk-foundation.py
+uv run python 01-llm_apps/01-openai_sdk_foundation.py
 ```
 
 
