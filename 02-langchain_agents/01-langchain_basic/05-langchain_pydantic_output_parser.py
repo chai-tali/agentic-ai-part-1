@@ -1,13 +1,14 @@
 import os
-from typing import Optional
+from typing import Optional, Literal
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from pathlib import Path
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
 
 
 # Load environment variables from .env file (works for direct and uvicorn runs)
@@ -45,47 +46,47 @@ def initialize_gemini_llm() -> ChatOpenAI:
     )
 
 
-app = FastAPI(title="LangChain + Gemini Prompt Templates", version="1.0.0")
+app = FastAPI(title="LangChain + Gemini Pydantic Output Parser", version="1.0.0")
 llm = initialize_gemini_llm()
 
 
-class ChatRequest(BaseModel):
-    topic: str
-    tone: Optional[str] = None
+class LanguageInfo(BaseModel):
+    name: str
+    type: Literal["compiled", "interpreted"]
+    popularity: int = Field(ge=1, le=10)
 
 
-class ChatResponse(BaseModel):
-    response: str
-    model: str
-
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
+@app.get("/parse_pydantic", response_model=LanguageInfo)
+async def parse_pydantic(language: Optional[str] = None) -> LanguageInfo:
     """
-    Async endpoint demonstrating PromptTemplate only (no chains/parsers).
+    Generate and parse a structured object using PydanticOutputParser.
 
-    Example template: "Summarize {topic} in 3 bullet points with a {tone} tone."
+    Optional query param: `language` to suggest a specific language.
     """
     try:
-        tone = (request.tone or "concise").strip()
+        parser = PydanticOutputParser(pydantic_object=LanguageInfo)
+        format_instructions = parser.get_format_instructions()
 
-        # Build a reusable prompt template with static and dynamic parts
         prompt = PromptTemplate(
             template=(
-                "You are a helpful assistant.\n"
-                "Summarize {topic} in exactly 3 bullet points with a {tone} tone.\n"
-                "Each bullet should be a single sentence."
+                "Return details of a programming language in JSON with fields: "
+                "name, type (compiled/interpreted), and popularity (1-10).\n"
+                "{maybe_language}"
+                "{format_instructions}"
             ),
-            input_variables=["topic", "tone"],
+            input_variables=["format_instructions", "maybe_language"],
         )
 
-        # Format the prompt and call the LLM asynchronously
-        final_prompt = prompt.format(topic=request.topic, tone=tone)
+        maybe_language = "" if not language else f"Use the language: {language}.\n"
+        final_prompt = prompt.format(
+            format_instructions=format_instructions,
+            maybe_language=maybe_language,
+        )
         result = await llm.ainvoke(final_prompt)
         content = result.content if hasattr(result, "content") else str(result)
-        return ChatResponse(response=content, model=llm.model_name)
+        return parser.parse(content)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Parse error: {str(e)}")
 
 
 if __name__ == "__main__":

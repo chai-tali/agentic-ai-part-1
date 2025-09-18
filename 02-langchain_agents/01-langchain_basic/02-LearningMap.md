@@ -142,3 +142,49 @@ Required env vars: `GEMINI_API_KEY`, `GEMINI_API_BASE` (e.g., `https://generativ
 - Add Zod or Pydantic schema-based parsing for stricter validation
 - Extend `/parse_json` to return a list of N language objects
 - Return token usage and latency metrics in responses
+
+## 05-langchain_pydantic_output_parser.py
+
+### What I will build?
+- A FastAPI endpoint demonstrating `PydanticOutputParser` to coerce model output into a validated Pydantic model.
+
+### WHat concepts gets applied in this exercise?
+- Schema-first prompting with `PydanticOutputParser`
+- Using `get_format_instructions()` to guide model output shape
+- Validating and returning typed responses from FastAPI
+
+### What skills I will acuire post completion of this exercise?
+- Define Pydantic models for structured LLM output
+- Prompt models to follow strict JSON structure
+- Handle validation errors gracefully
+
+### What tools, libraries, frameworks  I will use for this exercise?
+- FastAPI, Uvicorn
+- `langchain-openai`, `langchain-core`
+- `python-dotenv`, `pydantic`
+
+### How to run this example?
+```bash
+uv run uvicorn 02-langchain_agents.01-langchain_basic.05-langchain_pydantic_output_parser:app --reload
+```
+Required env vars: `GEMINI_API_KEY`, `GEMINI_API_BASE`, optional `GEMINI_MODEL_NAME`.
+
+### Endpoint
+- `/parse_pydantic` (GET, optional query `language`)
+  - Model schema:
+    - `name: str`
+    - `type: "compiled" | "interpreted"`
+    - `popularity: int` (1-10)
+  - Example Output:
+    ```json
+    {
+      "name": "Python",
+      "type": "interpreted",
+      "popularity": 10
+    }
+    ```
+
+### What Next?
+- Expand the schema with fields like `paradigms` (list) and `creator`
+- Add input validation for `language` query and default behaviors
+- Compare `JsonOutputParser` vs `PydanticOutputParser` error handling
