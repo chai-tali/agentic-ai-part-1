@@ -36,6 +36,7 @@ cp .envbackup .env
 # Edit .env file with your API keys:
 # - AZURE_OPENAI_API_KEY=your_azure_key
 # - GEMINI_API_KEY=your_gemini_key
+# - APIIP_KEY=your_apiip_key   # Required for IP geolocation in 06-tool_calling
 # - etc.
 ```
 
@@ -105,6 +106,25 @@ curl -X POST http://localhost:8000/chat \
   -d '{"message": "Hello AI!", "model": "azureopenai"}'
 ```
 
+### Tool Calling Demo (IP Location)
+```bash
+# Start the tool-calling demo server
+uv run uvicorn 01-llm_apps.06-tool_calling:app --reload
+
+# Open API docs
+# http://localhost:8000/docs
+
+# Example request (the model will call the IP location tool when needed)
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is the history of my place?"}'
+```
+
+Notes:
+- The tool-calling demo uses the IP geolocation tool available at https://apiip.net/documentation.
+- Set `APIIP_KEY` (or `APIP_KEY` / `APIP_API_KEY`) in your `.env`.
+- When using the docs at `http://localhost:8000/docs`, requests originate from `127.0.0.1`. The app detects private/loopback IPs and falls back to your public IP automatically for geolocation.
+
 ## 🧪 Testing Guide
 
 ### Test Categories
@@ -141,25 +161,6 @@ uv run python tests/manual/test_api_client.py
 - ✅ **Request Validation**: Pydantic model testing
 - ✅ **Mock Integration**: External API mocking
 
-## 📚 Learning Path
-
-### Beginner
-1. Start with `01-openai_sdk_foundation.py` - Learn basic LLM integration
-2. Run the FastAPI server and explore `/docs`
-3. Run unit tests to understand isolated testing
-4. Try manual testing with the interactive client
-
-### Intermediate  
-1. Study `04-fast_api_llm_app.py` - Understand streaming vs non-streaming
-2. Examine integration tests for API testing patterns
-3. Experiment with different models and parameters
-4. Modify tests to add new functionality
-
-### Advanced
-1. Extend the API with new endpoints
-2. Add new LLM providers (Anthropic, local models)
-3. Implement authentication and rate limiting
-4. Build a complete chat interface
 
 ## 🛠️ API Endpoints
 
@@ -229,11 +230,6 @@ uv run python tests/manual/test_api_client.py
 - **Testing**: `pytest`, `pytest-asyncio`, `httpx`, `pytest-mock`
 - **Development**: `uv` (package manager), `pydantic` (validation)
 
-## 🚀 Next Steps
 
-1. **Extend Functionality**: Add new LLM providers, authentication, rate limiting
-2. **Build UIs**: Create web or mobile frontends for the API
-3. **Deploy**: Learn containerization and cloud deployment
-4. **Scale**: Implement caching, load balancing, monitoring
 
 Happy Learning! 🎉
