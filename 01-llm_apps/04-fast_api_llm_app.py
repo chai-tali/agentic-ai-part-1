@@ -11,9 +11,14 @@ from openai import OpenAI, AzureOpenAI
 from dotenv import load_dotenv
 import asyncio
 import io
+from pathlib import Path
 
 # Load environment variables from .env file (contains API keys and endpoints)
-load_dotenv()
+# Handle both direct execution and uvicorn execution
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+env_path = project_root / ".env"
+load_dotenv(dotenv_path=str(env_path))
 
 # Initialize FastAPI app
 app = FastAPI(title="LLM Streaming API", version="1.0.0")

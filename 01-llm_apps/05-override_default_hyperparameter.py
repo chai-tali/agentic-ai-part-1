@@ -5,8 +5,14 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import AzureOpenAI
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Load environment variables from .env file
+# Handle both direct execution and uvicorn execution
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+env_path = project_root / ".env"
+load_dotenv(dotenv_path=str(env_path))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

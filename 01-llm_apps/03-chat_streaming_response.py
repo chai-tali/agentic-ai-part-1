@@ -7,6 +7,7 @@ import json
 from openai import OpenAI, AzureOpenAI
 from IPython.display import Markdown, display
 from dotenv import load_dotenv
+from pathlib import Path
 
 # =============================================================================
 # STREAMING CONCEPTS FOR BEGINNERS
@@ -31,7 +32,11 @@ How It Works:
 """
 
 # Load environment variables from .env file
-load_dotenv()
+# Handle both direct execution and uvicorn execution
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+env_path = project_root / ".env"
+load_dotenv(dotenv_path=str(env_path))
 # =============================================================================
 # PART 1: AZURE OPENAI STREAMING SETUP
 # =============================================================================

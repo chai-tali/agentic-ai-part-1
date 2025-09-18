@@ -6,14 +6,18 @@ import os
 from openai import OpenAI, AzureOpenAI  # OpenAI SDK works with multiple providers
 from IPython.display import Markdown, display
 from dotenv import load_dotenv  # For loading API keys securely
+from pathlib import Path
 
 # =============================================================================
 # ENVIRONMENT SETUP - Loading API Keys and Configuration
 # =============================================================================
 
 # Load environment variables from .env file
-# This is the secure way to store API keys (never hardcode them!)
-load_dotenv()
+# Handle both direct execution and uvicorn execution
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+env_path = project_root / ".env"
+load_dotenv(dotenv_path=str(env_path))
 
 # Your .env file should contain:
 # AZURE_OPENAI_API_KEY=your_azure_key_here

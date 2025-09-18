@@ -7,6 +7,7 @@ import json
 from openai import OpenAI, AzureOpenAI
 from IPython.display import Markdown, display
 from dotenv import load_dotenv
+from pathlib import Path
 
 # =============================================================================
 # SETUP: Data Collection for Model Comparison
@@ -22,7 +23,11 @@ answers = []      # Their responses to the same question
 # 3. Use another model to judge the results
 
 # Load environment variables from .env file
-load_dotenv()
+# Handle both direct execution and uvicorn execution
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+env_path = project_root / ".env"
+load_dotenv(dotenv_path=str(env_path))
 
 # This script requires:
 # - Cloud LLM APIs (Azure OpenAI, Gemini) for generating responses
