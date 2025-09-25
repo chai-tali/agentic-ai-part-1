@@ -73,7 +73,12 @@ async def parse_list() -> list[str]:
 
         final_prompt = prompt.format(format_instructions=format_instructions)
         result = await llm.ainvoke(final_prompt)
+        print("Final prompt:", final_prompt)
+        print("Result:", result)
         content = result.content if hasattr(result, "content") else str(result)
+
+        # Token usage metadata
+        print("Usage metadata:", result.response_metadata.get("token_usage", {}))
         return parser.parse(content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Parse error: {str(e)}")
@@ -102,6 +107,8 @@ async def parse_json() -> dict:
         final_prompt = prompt.format(format_instructions=format_instructions)
         result = await llm.ainvoke(final_prompt)
         content = result.content if hasattr(result, "content") else str(result)
+        # Token usage metadata
+        print("Usage metadata:", result.response_metadata.get("token_usage", {}))
         return parser.parse(content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Parse error: {str(e)}")

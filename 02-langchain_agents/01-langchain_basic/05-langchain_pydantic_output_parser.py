@@ -84,6 +84,8 @@ async def parse_pydantic(language: Optional[str] = None) -> LanguageInfo:
         )
         result = await llm.ainvoke(final_prompt)
         content = result.content if hasattr(result, "content") else str(result)
+        # Token usage metadata
+        print("Usage metadata:", result.response_metadata.get("token_usage", {}))
         return parser.parse(content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Parse error: {str(e)}")

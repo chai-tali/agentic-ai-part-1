@@ -4,12 +4,14 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from pathlib import Path
 from typing import Dict, Any
+from pydantic import Field
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain_community.callbacks import get_openai_callback
 
 # ----------------------------
 # Load environment variables
@@ -79,9 +81,15 @@ class CustomSummaryBufferMemory:
 Summary:"""
         
         try:
-            summary = self.llm.invoke(summary_prompt).content
+            # Track token usage for summarization
+            with get_openai_callback() as cb:
+                summary = self.llm.invoke(summary_prompt).content
+                print(f"Summarization Token Usage: {cb}")
+                
+            
             return f"Previous conversation summary: {summary}"
-        except Exception:
+        except Exception as e:
+            print(f"Summarization failed: {e}")
             return f"Previous conversation included discussion about: {conversation_text[:200]}..."
     
     def get_memory_variables(self):
@@ -109,13 +117,14 @@ app = FastAPI(title="LangChain + Custom Summary Buffer Memory", version="1.0.0")
 llm = initialize_gemini_llm()
 
 # ----------------------------
-# Custom Memory: Hybrid approach without token counting
+# Custom Memory: Hybrid approach with token counting
 # ----------------------------
 custom_memory = CustomSummaryBufferMemory(
     llm=llm, 
     max_message_pairs=3,  # Keep 3 recent message pairs in full detail
     memory_key="history"
 )
+
 
 # ----------------------------
 # Prompt: injects conversation history
@@ -151,14 +160,22 @@ chain = (
 class ChatRequest(BaseModel):
     query: str
 
+class TokenUsage(BaseModel):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    total_cost_usd: float = Field(alias="total_cost")
+
 class ChatResponse(BaseModel):
     response: str
     memory_details: Dict[str, Any]
+    token_usage: TokenUsage
 
 class MemoryStats(BaseModel):
     current_summary: str
     recent_messages_count: int
     memory_structure: str
+
 
 # ----------------------------
 # Helper function to format memory details
@@ -185,18 +202,34 @@ def format_memory_details() -> Dict[str, Any]:
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     try:
-        # Run the chain with input
-        result_text = await chain.ainvoke({"input": request.query})
+        # Track token usage for the main LLM call
+        with get_openai_callback() as cb:
+            # Run the chain with input
+            result_text = await chain.ainvoke({"input": request.query})
+            
+            # Create token usage object
+            token_usage = TokenUsage(
+                prompt_tokens=cb.prompt_tokens,
+                completion_tokens=cb.completion_tokens,
+                total_tokens=cb.total_tokens,
+                total_cost=cb.total_cost
+            )
+            
+            
+            print(f"Main LLM Token Usage: {cb}")
         
         # Save the conversation to custom memory
         custom_memory.add_message(request.query, result_text)
         
         return ChatResponse(
             response=result_text,
-            memory_details=format_memory_details()
+            memory_details=format_memory_details(),
+            token_usage=token_usage
         )
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 # ----------------------------

@@ -74,6 +74,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
         result = llm.invoke(messages)
         content = result.content if hasattr(result, "content") else str(result)
+        # Token usage metadata
+        print("Usage metadata:", result.response_metadata.get("token_usage", {}))
         return ChatResponse(response=content, model=llm.model_name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

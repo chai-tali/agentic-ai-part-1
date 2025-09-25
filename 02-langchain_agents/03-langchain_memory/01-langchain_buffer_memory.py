@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
+from langchain_community.callbacks import get_openai_callback
 
 
 # Load environment variables from .env file (works for direct and uvicorn runs)
@@ -65,16 +66,23 @@ conversation_chain = LLMChain(
     llm=llm,
     prompt=prompt,
     memory=memory,
+   
 )
 
 
 class ChatRequest(BaseModel):
     query: str
 
+class TokenUsage(BaseModel):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+   
 
 class ChatResponse(BaseModel):
     response: str
     history: List[str]
+    token_usage: TokenUsage
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -84,16 +92,34 @@ async def chat(request: ChatRequest) -> ChatResponse:
     Memory persists across requests for this server run.
     """
     try:
-        # apredict returns a string response
-        result = await conversation_chain.apredict(input=request.query)
+        with get_openai_callback() as cb:
+            # apredict is fine to use here, as the callback intercepts the call
+            result = await conversation_chain.apredict(input=request.query)
+            
+            # The callback object 'cb' is now populated with usage data
+            print(f"Token Usage Callback: {cb}")
+            
+            token_usage = TokenUsage(
+                prompt_tokens=cb.prompt_tokens,
+                completion_tokens=cb.completion_tokens,
+                total_tokens=cb.total_tokens,
+               
+            )
+
         # Flatten memory into strings for return
         history = [
             f"{msg.type}: {msg.content}" for msg in memory.chat_memory.messages
         ]
-        return ChatResponse(response=result, history=history)
+        
+        return ChatResponse(
+            response=result, 
+            history=history, 
+            token_usage=token_usage
+        )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
 
 if __name__ == "__main__":
     import uvicorn

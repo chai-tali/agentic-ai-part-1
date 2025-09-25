@@ -10,6 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.memory import ConversationSummaryMemory
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain_community.callbacks import get_openai_callback
 
 # ----------------------------
 # Load environment variables
@@ -87,6 +88,12 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     summary: str
+    token_usage: "TokenUsage"
+
+class TokenUsage(BaseModel):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
 
 # ----------------------------
 # Chat endpoint
@@ -98,7 +105,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
         memory_vars = summary_memory.load_memory_variables({})
         
         # Run the chain with input
-        result_text = await chain.ainvoke({"input": request.query})
+        with get_openai_callback() as cb:
+            result_text = await chain.ainvoke({"input": request.query})
+            token_usage = TokenUsage(
+                prompt_tokens=cb.prompt_tokens,
+                completion_tokens=cb.completion_tokens,
+                total_tokens=cb.total_tokens,
+            )
         
         # Save the conversation to memory
         summary_memory.save_context(
@@ -126,6 +139,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         return ChatResponse(
             response=result_text,
             summary=summary_text,
+            token_usage=token_usage,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
